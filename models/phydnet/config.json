@@ -1,0 +1,27 @@
+{
+	"paths": {
+	},
+
+	"general": {
+		"device": "cuda"
+	},
+
+	"training": {
+		"save_model": true,
+		"continue_training": false,
+		"epochs": 2001,
+		"learning_rate": 0.001
+	},
+
+	"data": {
+		"type": "allen_cahn",  // "burger", "diffusion_sorption", "diffusion_reaction"
+		"name": "data_train",  // "data_train", "data_ext", "data_test"
+		"noise": 0.0
+	},
+
+	"model": {
+		"name": "allen-cahn",  // "burger", "diff-sorp", "diff-react"
+		"number": 0,  // The i-th model
+		"small" : 1  // 0 if original size, 1 if smaller network
+	}
+}

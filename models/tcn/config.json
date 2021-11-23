@@ -1,0 +1,46 @@
+{
+	"paths": {
+	},
+
+	"general": {
+		"device": "CPU"
+	},
+
+	"training": {
+		"save_model": true,
+		"continue_training": false,
+		"epochs": 200,
+		"batch_size": 1,
+		"learning_rate": 1,
+		"t_start": 0,
+		"t_stop": 150  // burger 150, diff-sorp 400, fhn 70
+	},
+
+	"validation": {
+		"batch_size": 1,
+		"t_start": 150,  // burger 150, diff-sorp 400, fhn 70
+		"t_stop": 200  // burger 200, diff-sorp 500, fhn 100
+	},
+
+	"testing": {
+		"batch_size": 1,
+		"teacher_forcing_steps": 20,
+		"closed_loop_steps": 1990,
+		"feed_boundary_data": true
+	},
+
+	"data": {
+		"type": "allen_cahn",  // "burger", "diffusion_sorption", "diffusion_reaction"
+		"name": "data_ext", // "data_train", "data_ext", "data_test"
+		"noise": 0.0
+	},
+
+	"model": {
+		"name": "allen-cahn",  // "burger", "diff-sorp", "diff-react"
+		"number": 0,  // The i-th model
+		"field_size": [49],  // burger [49], diff-sorp [26], fhn [49, 49]
+		"channels": [1, 32, 1],  // burger [1, ..., 1], diff-sorp and diff-react [2, ..., 2]
+		"kernel_size": 3,
+		"horizon": 250
+	}
+}

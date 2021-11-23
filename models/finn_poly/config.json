@@ -1,0 +1,26 @@
+{
+	"paths": {
+	},
+
+	"general": {
+		"device": "cuda"
+	},
+
+	"training": {
+		"save_model": true,
+		"continue_training": false,
+		"epochs": 100,
+		"learning_rate": 0.1
+	},
+
+	"data": {
+		"type": "diffusion_reaction",  // "burger", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
+		"name": "data_train", // "data_train", "data_ext", "data_test"
+		"noise": 0.0
+	},
+
+	"model": {
+		"name": "diff-react",  // "burger", "diff-sorp", "diff-react", "allen-cahn"
+		"number": 0  // The i-th model
+	}
+}
