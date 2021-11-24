@@ -445,7 +445,6 @@ class FINN_DiffReact(FINN):
         ## Calculate fluxes at the left boundary of control volumes i
         
         ## For act
-        """
         # Calculate the flux at the left domain boundary
         left_bound_flux_act = th.cat(self.Ny * [self.BC[0,0].unsqueeze(0)]).unsqueeze(0)
                             
@@ -469,21 +468,10 @@ class FINN_DiffReact(FINN):
 
         # Stack the left fluxes of act and inh together
         left_flux = th.stack((left_flux_act, left_flux_inh), dim=len(act.size()))
-        left_flux = th.stack((self.left_flux_act, self.left_flux_inh), dim=len(act.size()))
-        """
-
-        left_neighbors_act = self.D[0]*(self.stencil[0]*act[1:] +
-                            self.stencil[1]*act[:-1])
-        left_neighbors_inh = self.D[1]*(self.stencil[0]*inh[1:] +
-                            self.stencil[1]*inh[:-1])
-
-        self.left_flux[1:, :, 0] = left_neighbors_act
-        self.left_flux[1:, :, 1] = left_neighbors_inh
 
         ## Calculate fluxes at the right boundary of control volumes i
         
         ## For act
-        """
         # Calculate the flux at the right domain boundary
         right_bound_flux_act = th.cat(self.Ny * [self.BC[1,0].unsqueeze(0)]).unsqueeze(0)
                             
@@ -507,21 +495,10 @@ class FINN_DiffReact(FINN):
         
         # Stack the right fluxes of act and inh together
         right_flux = th.stack((right_flux_act, right_flux_inh), dim=len(act.size()))
-        """
-
-
-        right_neighbors_act = self.D[0]*(self.stencil[0]*act[:-1] +
-                            self.stencil[1]*act[1:])
-        right_neighbors_inh = self.D[1]*(self.stencil[0]*inh[:-1] +
-                            self.stencil[1]*inh[1:])
-
-        self.right_flux[:-1, :, 0] = right_neighbors_act
-        self.right_flux[:-1, :, 1] = right_neighbors_inh
         
         ## Calculate fluxes at the bottom boundary of control volumes i
         
         ## For act
-        """
         # Calculate the flux at the bottom domain boundary
         bottom_bound_flux_act = th.cat(self.Nx * [self.BC[2,0].unsqueeze(0)]).unsqueeze(-1)
            
@@ -545,20 +522,10 @@ class FINN_DiffReact(FINN):
 
         # Stack the bottom fluxes of act and inh together
         bottom_flux = th.stack((bottom_flux_act, bottom_flux_inh), dim=len(act.size()))
-        """
 
-        bottom_neighbors_act = self.D[0]*(self.stencil[0]*act[:,1:] +
-                            self.stencil[1]*act[:,:-1])
-        bottom_neighbors_inh = self.D[1]*(self.stencil[0]*inh[:,1:] +
-                            self.stencil[1]*inh[:,:-1])
-
-        self.bottom_flux[:, 1:, 0] = bottom_neighbors_act
-        self.bottom_flux[:, 1:, 1] = bottom_neighbors_inh
-        
         ## Calculate fluxes at the bottom boundary of control volumes i
         
         ## For act
-        """
         # Calculate the flux at the top domain boundary
         top_bound_flux_act = th.cat(self.Nx * [self.BC[3,0].unsqueeze(0)]).unsqueeze(-1)
                             
@@ -582,18 +549,9 @@ class FINN_DiffReact(FINN):
         
         # Stack the top fluxes of act and inh together
         top_flux = th.stack((top_flux_act, top_flux_inh), dim=len(act.size()))
-        """
-
-        top_neighbors_act = self.D[0]*(self.stencil[0]*act[:,:-1] +
-                            self.stencil[1]*act[:,1:])
-        top_neighbors_inh = self.D[1]*(self.stencil[0]*inh[:,:-1] +
-                            self.stencil[1]*inh[:,1:])
-
-        self.top_flux[:, :-1, 0] = top_neighbors_act
-        self.top_flux[:, :-1, 1] = top_neighbors_inh
         
         # Integrate the fluxes at all boundaries of control volumes i
-        flux = self.left_flux + self.right_flux + self.bottom_flux + self.top_flux
+        flux = left_flux + right_flux + bottom_flux + top_flux
         
         return flux
     

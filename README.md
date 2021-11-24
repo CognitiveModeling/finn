@@ -6,11 +6,11 @@ This repository contains the PyTorch code for models, training, and testing, and
 If you find this repository helpful, please cite our work:
 
 ```
-@article{...,
-	author    = {...},
+@article{karlbauer2021composing,
+	author    = {Karlbauer, Matthias and Praditia, Timothy and Otte, Sebastian and Oladyshkin, Sergey and Nowak, Wolfgang and Butz, Martin V},
 	title     = {Composing Partial Differential Equations with Physics-Aware Neural Networks},
-	journal   = {...},
-	year      = {...},
+	journal   = {arXiv preprint arXiv:2111.11798},
+	year      = {2021},
 }
 ```
 
