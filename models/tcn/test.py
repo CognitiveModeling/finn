@@ -96,6 +96,14 @@ def run_testing(print_progress=False, visualize=False, model_number=None):
         data = np.array(np.load(data_path), dtype=np.float32)
         data = np.expand_dims(data, axis=0)
 
+    elif config.data.type == "burger_2d":
+        data_path = os.path.join("../../data/",
+                                 config.data.type,
+                                 config.data.name,
+                                 "sample.npy")
+        data = np.array(np.load(data_path), dtype=np.float32)
+        data = np.expand_dims(data, axis=0)
+
     # Set up the training and validation datasets and -loaders
     data_test = th.tensor(data[:], device=device).unsqueeze(0)
     sequence_length = len(data_test[0, 0]) - 1
@@ -207,12 +215,32 @@ def run_testing(print_progress=False, visualize=False, model_number=None):
             ax[0].set_ylabel("y")
             ax[1].set_xlabel("x")
 
+        elif config.data.type == "burger_2d":
+            
+            im1 = ax[0].imshow(
+                np.transpose(net_labels[-1, ...]), interpolation='nearest',
+                cmap='rainbow', origin='lower', aspect='auto', vmin=-0.4,
+                vmax=0.4
+            )
+            fig.colorbar(im1, ax=ax[0])
+            im2 = ax[1].imshow(
+                np.transpose(net_outputs[-1, ...]), interpolation='nearest',
+                cmap='rainbow', origin='lower', aspect='auto', vmin=-0.4,
+                vmax=0.4
+            )
+            fig.colorbar(im2, ax=ax[1])
+
+            ax[0].set_xlabel("x")
+            ax[0].set_ylabel("y")
+            ax[1].set_xlabel("x")
+
 
         ax[0].set_title("Ground Truth")
         ax[1].set_title("Network Output")
 
 
-        if config.data.type == "diffusion_reaction":
+        if config.data.type == "diffusion_reaction"\
+            or config.data.type == "burger_2d":
             anim = animation.FuncAnimation(
                 fig,
                 animate,

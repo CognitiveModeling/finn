@@ -3,7 +3,7 @@
 	},
 
 	"general": {
-		"device": "cuda"
+		"device": "cpu"  // "cpu" or "cuda"
 	},
 
 	"training": {
@@ -14,14 +14,14 @@
 	},
 
 	"data": {
-		"type": "burger",  // "burger", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
-		"name": "data_test", // "data_train", "data_ext", "data_test"
+		"type": "burger_2d",  // "burger", "burger_2d" "diffusion_sorption", "diffusion_reaction", "allen_cahn"
+		"name": "data_train", // "data_train", "data_ext", "data_test"
 		"noise": 0.0
 	},
 
 	"model": {
-		"name": "burger",
+		"name": "burger_2d",  // "burger", "burger_2d", "diff-sorp", "diff-react", "allen-cahn"
 		"number": 0,  // The i-th model
-		"layer_sizes": [1, 10, 20, 10, 1] // [1, 10, 20, 10, 1] for burger, diffusion_sorption, and allen_cahn, [2, 20, 20, 20, 2] for diffusion_reaction
+		"layer_sizes": [1, 10, 20, 10, 1] // [1, 10, 20, 10, 1] for burger, burger_2d, diffusion_sorption, and allen_cahn, [2, 20, 20, 20, 2] for diffusion_reaction
 	}
 }

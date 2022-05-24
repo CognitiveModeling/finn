@@ -15,7 +15,7 @@ import time
 
 sys.path.append("..")
 from utils.configuration import Configuration
-from pinn import PINN_Burger, PINN_DiffSorp, PINN_DiffReact, PINN_AllenCahn
+from pinn import *
 
 
 def run_testing(print_progress=False, visualize=False, model_number=None):
@@ -132,6 +132,29 @@ def run_testing(print_progress=False, visualize=False, model_number=None):
         t_tensor = th.unsqueeze(th.tensor(ts.flatten()), 1).to(device=device)
         x_tensor = th.unsqueeze(th.tensor(xs.flatten()), 1).to(device=device)
 
+    elif config.data.type == "burger_2d":
+        model = PINN_Burger2D(
+            layer_sizes=config.model.layer_sizes,
+            device=device
+        )
+
+        # Set up the test data
+        data_path = os.path.join(os.path.abspath("../../data"),
+                                 config.data.type,
+                                 config.data.name)
+        sample_u = np.load(os.path.join(data_path, "sample.npy"))
+        t_series = np.load(os.path.join(data_path, "t_series.npy"))
+        x_series = np.load(os.path.join(data_path, "x_series.npy"))
+        y_series = np.load(os.path.join(data_path, "y_series.npy"))
+
+        (ts, xs, ys) = np.array(
+            np.meshgrid(t_series, x_series, y_series, indexing="ij"),
+            dtype=np.float32
+        )
+        t_tensor = th.unsqueeze(th.tensor(ts.flatten()), 1).to(device=device)
+        x_tensor = th.unsqueeze(th.tensor(xs.flatten()), 1).to(device=device)
+        y_tensor = th.unsqueeze(th.tensor(ys.flatten()), 1).to(device=device)
+
     # Count number of trainable parameters
     pytorch_total_params = sum(
         p.numel() for p in model.parameters() if p.requires_grad
@@ -223,6 +246,37 @@ def run_testing(print_progress=False, visualize=False, model_number=None):
         mse_u = np.mean(np.square(sample_u - u_hat))
         mse = mse_u
 
+    elif config.data.type == "burger_2d":
+        
+        """
+        # if "ext" in config.data.name:
+        # Partition the batch number due to extremely high memory usage
+        u_hat = th.zeros(len(t_series)*len(x_series)*len(y_series),1)
+        v_hat = th.zeros(len(t_series)*len(x_series)*len(y_series),1)
+        for i in range(len(t_series)):
+            t_inp = t_tensor[i*len(x_series)*len(y_series):(i+1)*len(x_series)*len(y_series)]
+            x_inp = x_tensor[i*len(x_series)*len(y_series):(i+1)*len(x_series)*len(y_series)]
+            y_inp = y_tensor[i*len(x_series)*len(y_series):(i+1)*len(x_series)*len(y_series)]
+            u_hat[i*len(x_series)*len(y_series):(i+1)*len(x_series)*len(y_series)], \
+                v_hat[i*len(x_series)*len(y_series):(i+1)*len(x_series)*len(y_series)], \
+                    _, _ = model.forward(t=t_inp, x=x_inp, y=y_inp)
+        """
+
+        time_start = time.time()
+        u_hat = th.zeros(len(t_series)*len(x_series)*len(y_series),1)
+        u_hat, _ = model.forward(t=t_tensor, x=x_tensor, y=y_tensor)
+        if print_progress:
+            print(f"Forward pass took: {time.time() - time_start} seconds.")
+        
+        u_hat = u_hat.view(
+            len(t_series), len(x_series), len(y_series)
+        ).detach().cpu().numpy()
+        
+        pred = u_hat
+        labels = sample_u
+
+        mse = np.mean(np.square(sample_u - u_hat))
+
     print(f"MSE: {mse}")
 
     #
@@ -304,6 +358,25 @@ def run_testing(print_progress=False, visualize=False, model_number=None):
             ax[0].set_xlabel("t")
             ax[0].set_ylabel("x")
             ax[1].set_xlabel("t")
+
+        elif config.data.type == "burger_2d":
+            
+            im1 = ax[0].imshow(
+                np.transpose(sample_u[-1]), interpolation='nearest',
+                origin='lower', aspect='auto', vmin=-0.4,
+                vmax=0.4
+            )
+            fig.colorbar(im1, ax=ax[0])
+            im2 = ax[1].imshow(
+                np.transpose(u_hat[-1]), interpolation='nearest',
+                origin='lower', aspect='auto', vmin=-0.4,
+                vmax=0.4
+            )
+            fig.colorbar(im2, ax=ax[1])
+
+            ax[0].set_xlabel("x")
+            ax[0].set_ylabel("y")
+            ax[1].set_xlabel("x")
         
         
         ax[0].set_title("Ground Truth")

@@ -9,8 +9,8 @@
 	"training": {
 		"save_model": true,
 		"continue_training": false,
-		"epochs": 2001,
-		"learning_rate": 0.001
+		"epochs": 100,
+		"learning_rate": 1
 	},
 
 	"data": {
@@ -21,7 +21,6 @@
 
 	"model": {
 		"name": "burger_2d",  // "burger", "burger_2d", "diff-sorp", "diff-react", "allen-cahn"
-		"number": 0,  // The i-th model
-		"small" : 1  // 0 if original size, 1 if smaller network
+		"number": 0  // The i-th model
 	}
 }

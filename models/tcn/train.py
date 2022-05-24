@@ -106,6 +106,14 @@ def run_training(print_progress=False, model_number=None):
                                  "sample.npy")
         data = np.array(np.load(data_path), dtype=np.float32)
         data = np.expand_dims(data, axis=0)
+
+    elif config.data.type == "burger_2d":
+        data_path = os.path.join("../../data/",
+                                 config.data.type,
+                                 config.data.name,
+                                 "sample.npy")
+        data = np.array(np.load(data_path), dtype=np.float32)
+        data = np.expand_dims(data, axis=0)
     
     # Set up the training and validation datasets and -loaders
     data_train = th.tensor(

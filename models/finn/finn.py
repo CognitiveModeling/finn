@@ -675,3 +675,171 @@ class FINN_AllenCahn(FINN):
         pred = odeint(self.state_kernel, u[0], t)
         
         return pred
+
+
+class FINN_Burger2D(FINN):
+    """
+    This is the inherited FINN class for the diffusion-reaction equation implementation.
+    This class inherits all parameter from the parent FINN class.
+    """
+    def __init__(self, u, D, BC, dx, dy, layer_sizes, device, mode="train",
+                 config=None, learn_coeff=False, learn_stencil=False, bias=False,
+                 sigmoid=False):
+        
+        super().__init__(u, D, BC, layer_sizes, device, mode, config, learn_coeff,
+                         learn_stencil, bias, sigmoid)
+        
+        """
+        Constructor.
+        
+        Inputs:
+        Same with the parent FINN class, with the addition of dx and dy (the
+        spatial resolution)
+        """
+        
+        self.dx = dx
+        self.dy = dy
+        
+        self.Ny = u.size()[2]
+        
+        # Initialize the reaction_learner to learn the reaction term
+        self.func_nn = self.function_learner().to(device=self.device)
+
+        self.right_flux = th.zeros(49, 49, 1, device=self.device)
+        self.left_flux = th.zeros(49, 49, 1, device=self.device)
+
+        self.bottom_flux = th.zeros(49, 49, 1, device=self.device)
+        self.top_flux = th.zeros(49, 49, 1, device=self.device)
+        
+        layers = list()
+        
+        for layer_idx in range(len(self.layer_sizes) - 1):
+            layer = nn.Linear(
+                in_features=self.layer_sizes[layer_idx],
+                out_features=self.layer_sizes[layer_idx + 1],
+                bias=self.bias
+                ).to(device=self.device)
+            layers.append(layer)
+        
+            if layer_idx < len(self.layer_sizes) - 2:
+                layers.append(nn.Tanh())
+        
+        self.func_nn = nn.Sequential(*nn.ModuleList(layers))
+        
+    
+    """
+    TODO: Implement flux kernel for test (if different BC is used)
+    """
+        
+    def flux_kernel(self, t, u):
+        """
+        This function defines the flux kernel for training, which takes ui and its
+        neighbors as inputs, and returns the integrated flux approximation (up to
+        second order derivatives)
+        """
+        
+        # Approximate the first order flux multiplier
+        a = self.func_nn(u.unsqueeze(-1))
+        
+        # Apply the ReLU function for upwind scheme to prevent numerical
+        # instability
+        a_plus = th.relu(a[...,0])
+        a_min = -th.relu(-a[...,0])
+        
+        
+        ## Calculate fluxes at the left boundary of control volumes i
+        
+        # Calculate the flux at the left domain boundary
+        left_bound_flux = (self.D*(self.stencil[0]*u[0,:] +
+                            self.stencil[1]*self.BC[0,0]) -\
+                            a_plus[0,:]/self.dx*(-self.stencil[0]*u[0,:] -
+                            self.stencil[1]*self.BC[0,0])).unsqueeze(0)
+                            
+        # Calculate the fluxes between control volumes i and their left neighbors
+        left_neighbors = self.D*(self.stencil[0]*u[1:,:] +
+                            self.stencil[1]*u[:-1,:]) -\
+                            a_plus[1:,:]/self.dx*(-self.stencil[0]*u[1:,:] -
+                            self.stencil[1]*u[:-1,:])
+        
+        # Concatenate the left fluxes
+        left_flux = th.cat((left_bound_flux, left_neighbors))
+        
+        ## Calculate fluxes at the right boundary of control volumes i
+        
+        # Calculate the flux at the right domain boundary
+        right_bound_flux = (self.D*(self.stencil[0]*u[-1,:] +
+                            self.stencil[1]*self.BC[1,0]) -\
+                            a_min[-1,:]/self.dx*(self.stencil[0]*u[-1,:] +
+                            self.stencil[1]*self.BC[1,0])).unsqueeze(0)
+                 
+        # Calculate the fluxes between control volumes i and their right neighbors
+        right_neighbors = self.D*(self.stencil[0]*u[:-1,:] +
+                            self.stencil[1]*u[1:,:]) -\
+                            a_min[:-1,:]/self.dx*(self.stencil[0]*u[:-1,:] +
+                            self.stencil[1]*u[1:,:])
+        
+        # Concatenate the right fluxes
+        right_flux = th.cat((right_neighbors, right_bound_flux))
+        
+        # Calculate the flux at the bottom domain boundary
+        bottom_bound_flux = (self.D*(self.stencil[0]*u[:,0] +
+                            self.stencil[1]*self.BC[0,0]) -\
+                            a_plus[:,0]/self.dy*(-self.stencil[0]*u[:,0] -
+                            self.stencil[1]*self.BC[0,0])).unsqueeze(-1)
+                            
+        # Calculate the fluxes between control volumes i and their bottom neighbors
+        bottom_neighbors = self.D*(self.stencil[0]*u[:,1:] +
+                            self.stencil[1]*u[:,:-1]) -\
+                            a_plus[:,1:]/self.dy*(-self.stencil[0]*u[:,1:] -
+                            self.stencil[1]*u[:,:-1])
+        
+        # Concatenate the bottom fluxes
+        bottom_flux = th.cat((bottom_bound_flux, bottom_neighbors), dim=1)
+        
+        ## Calculate fluxes at the top boundary of control volumes i
+        
+        # Calculate the flux at the top domain boundary
+        top_bound_flux = (self.D*(self.stencil[0]*u[:,-1] +
+                            self.stencil[1]*self.BC[1,0]) -\
+                            a_min[:,-1]/self.dy*(self.stencil[0]*u[:,-1] +
+                            self.stencil[1]*self.BC[1,0])).unsqueeze(-1)
+                 
+        # Calculate the fluxes between control volumes i and their top neighbors
+        top_neighbors = self.D*(self.stencil[0]*u[:,:-1] +
+                            self.stencil[1]*u[:,1:]) -\
+                            a_min[:,:-1]/self.dy*(self.stencil[0]*u[:,:-1] +
+                            self.stencil[1]*u[:,1:])
+        
+        # Concatenate the top fluxes
+        top_flux = th.cat((top_neighbors, top_bound_flux), dim=1)
+        
+        
+        # Integrate the fluxes at all boundaries of control volumes i
+        flux = left_flux + right_flux + bottom_flux + top_flux
+        
+        return flux
+    
+    def state_kernel(self, t, u):
+        """
+        This function defines the state kernel for training, which takes the
+        fluxes as inputs, and returns du/dt)
+        """
+        
+        flux = self.flux_kernel(t, u)
+        
+        # Since there is no reaction term to be learned, du/dt = fluxes
+        state = flux
+        
+        return state
+    
+    def forward(self, t, u):
+        """
+        This function integrates du/dt through time using the Neural ODE method
+        """
+        
+        # The odeint function receives the function state_kernel that calculates
+        # du/dt, the initial condition u[0], and the time at which the values of
+        # u will be saved t
+        pred = odeint(self.state_kernel, u[0], t)
+        
+        return pred

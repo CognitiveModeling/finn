@@ -245,6 +245,53 @@ def run_training(print_progress=True, model_number=None):
         for i in range(0,7):
             constraints[ind,i] = 1
             ind +=1
+
+    elif config.data.type == "burger_2d":
+        # Load samples
+        u = th.tensor(np.load(os.path.join(data_path, "sample.npy")),
+                             dtype=th.float).to(device=device)
+        
+        u = u + th.normal(th.zeros_like(u),th.ones_like(u)*config.data.noise)
+        
+        sample_length = u.shape[0]
+        input_tensor = u[:sample_length//2].unsqueeze(0).unsqueeze(-3).to(device=device)
+        target_tensor = u[sample_length//2:].unsqueeze(0).unsqueeze(-3).to(device=device)
+        
+        # Initialize and set up the model
+        bc = th.tensor([[[0.0, 0.0, 0.0, 0.0]]]).to(device=device)
+
+        phycell  =  PhyCell(input_shape=(input_tensor.shape[-2]//4+1,
+                                         input_tensor.shape[-1]//4+1),
+                            input_dim=input_dim,
+                            F_hidden_dims=[49],
+                            n_layers=1,
+                            kernel_size=(7,7),
+                            device=device) 
+        
+        convcell =  ConvLSTM(input_shape=(input_tensor.shape[-2]//4+1,
+                                          input_tensor.shape[-1]//4+1),
+                             input_dim=input_dim, 
+                             hidden_dims=hidden_dims,
+                             n_layers=n_layers_convcell,
+                             kernel_size=(3,3),
+                             device=device)
+        
+        model  = EncoderRNN(phycell,
+                              convcell,
+                              input_channels=1,
+                              input_dim=(input_tensor.shape[-2],input_tensor.shape[-1]),
+                              _1d=False,
+                              bc=bc,
+                              device=device,
+                              sigmoid=False,
+                              small=config.model.small)
+        
+        constraints = th.zeros((49,7,7)).to(device)
+        ind = 0
+        for i in range(0,7):
+            for j in range(0,7):
+                constraints[ind,i,j] = 1
+                ind +=1
     
     if print_progress:
       print(phycell)

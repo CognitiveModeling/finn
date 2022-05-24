@@ -13,13 +13,13 @@
 		"batch_size": 1,
 		"learning_rate": 1,
 		"t_start": 0,
-		"t_stop": 150  // burger 150, diff-sorp 400, fhn 70
+		"t_stop": 150  // burger, burger_2d, allen-cahn 150, diff-sorp 400, diff-react 70
 	},
 
 	"validation": {
 		"batch_size": 1,
-		"t_start": 150,  // burger 150, diff-sorp 400, fhn 70
-		"t_stop": 200  // burger 200, diff-sorp 500, fhn 100
+		"t_start": 150,  // burger, burger_2d, allen-cahn 150, diff-sorp 400, diff-react 70
+		"t_stop": 200  // burger, burger_2d, allen-cahn 200, diff-sorp 500, diff-react 100
 	},
 
 	"testing": {
@@ -30,16 +30,16 @@
 	},
 
 	"data": {
-		"type": "allen_cahn",  // "burger", "diffusion_sorption", "diffusion_reaction"
-		"name": "data_test",  // "data_train", "data_ext", "data_test"
+		"type": "burger_2d",  // "burger", "burger_2d", diffusion_sorption", "diffusion_reaction", "allen_cahn"
+		"name": "data_train",  // "data_train", "data_ext", "data_test"
 		"noise": 0.0
 	},
 
 	"model": {
-		"name": "allen-cahn",  // "burger", "diff-sorp", "diff-react"
+		"name": "burger_2d",  // "burger", "burger_2d", diff-sorp", "diff-react", "allen-cahn"
 		"number": 0,  // The i-th model
-		"field_size": [49],  // burger [49], diff-sorp [26], diff-react [49, 49]
-		"channels": [1, 24, 1],  // burger [1, ..., 1], diff-sorp and fhn [2, ..., 2]
+		"field_size": [49, 49],  // burger and allen-cahn [49], diff-sorp [26], burger_2d and diff-react [49, 49]
+		"channels": [1, 24, 1],  // burger, burger_2d, and allen-cahn [1, ..., 1], diff-sorp and diff-react [2, ..., 2]
 		"kernel_size": 3
 	}
 }

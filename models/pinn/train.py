@@ -14,7 +14,7 @@ import sys
 sys.path.append("..")
 from utils.configuration import Configuration
 import utils.helper_functions as helpers
-from pinn import PINN_Burger, PINN_DiffSorp, PINN_DiffReact, PINN_AllenCahn
+from pinn import *
 
 
 def run_training(print_progress=False, model_number=None):
@@ -64,6 +64,11 @@ def run_training(print_progress=False, model_number=None):
             layer_sizes=config.model.layer_sizes,
             device=device
         )
+    elif config.data.type == "burger_2d":
+        model = PINN_Burger2D(
+            layer_sizes=config.model.layer_sizes,
+            device=device
+        )
 
     # Count number of trainable parameters
     pytorch_total_params = sum(
@@ -84,8 +89,8 @@ def run_training(print_progress=False, model_number=None):
     #
     # Set up an optimizer and the criterion (loss)
     optimizer = th.optim.LBFGS(model.parameters(),
-                                lr=config.training.learning_rate,
-                                line_search_fn="strong_wolfe")
+                               lr=config.training.learning_rate,
+                               line_search_fn="strong_wolfe")
     # If using mini-batch training, we cannot use LBFGS optimizer
     if config.training.batch_size < config.validation.batch_size:
         optimizer = th.optim.Adam(model.parameters(),
@@ -127,6 +132,8 @@ def run_training(print_progress=False, model_number=None):
         t, x, y, u, v, _, _, _ = th.split(sample, 1, dim=1)
     elif config.data.type == "allen_cahn":
         t, x, u, _, _ = th.split(sample, 1, dim=1)
+    elif config.data.type == "burger_2d":
+        t, x, y, u, _, _, _ = th.split(sample, 1, dim=1)
         
     sample_valid = next(iter(dataloader_valid))
 
@@ -140,6 +147,9 @@ def run_training(print_progress=False, model_number=None):
         t_valid, x_valid, y_valid, u_valid, v_valid, _, _, _ = th.split(sample_valid, 1, dim=1)
     elif config.data.type == "allen_cahn":
         t_valid, x_valid, u_valid, _, _ = th.split(sample_valid, 1, dim=1)
+    elif config.data.type == "burger_2d":
+        t_valid, x_valid, y_valid, u_valid, _, _, _ = th.split(sample_valid, 1, dim=1)
+
     #
     # Start the training and iterate over all epochs
     for epoch in range(config.training.epochs):
@@ -182,6 +192,12 @@ def run_training(print_progress=False, model_number=None):
                 
             elif config.data.type == "allen_cahn":
                 u_hat, f_hat = model.forward(t=t, x=x)
+                mse_u = th.mean(th.square(u_hat - u))
+                mse_f = th.mean(th.square(f_hat))
+                mse = mse_u + mse_f
+
+            elif config.data.type == "burger_2d":
+                u_hat, f_hat = model.forward(t=t, x=x, y=y)
                 mse_u = th.mean(th.square(u_hat - u))
                 mse_f = th.mean(th.square(f_hat))
                 mse = mse_u + mse_f
@@ -234,6 +250,12 @@ def run_training(print_progress=False, model_number=None):
         
         elif config.data.type == "allen_cahn":
             u_hat_valid, f_hat_valid = model.forward(t=t_valid, x=x_valid)
+            mse_u_valid = th.mean(th.square(u_hat_valid - u_valid))
+            mse_f_valid = th.mean(th.square(f_hat_valid))
+            mse_valid = mse_u_valid + mse_f_valid
+
+        elif config.data.type == "burger_2d":
+            u_hat_valid, f_hat_valid = model.forward(t=t_valid, x=x_valid, y=y_valid)
             mse_u_valid = th.mean(th.square(u_hat_valid - u_valid))
             mse_f_valid = th.mean(th.square(f_hat_valid))
             mse_valid = mse_u_valid + mse_f_valid

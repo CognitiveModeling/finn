@@ -15,7 +15,7 @@ import sys
 sys.path.append("..")
 from utils.configuration import Configuration
 import utils.helper_functions as helpers
-from finn import FINN_Burger, FINN_DiffSorp, FINN_DiffReact, FINN_AllenCahn
+from finn import *
 
 
 def run_training(print_progress=True, model_number=None):
@@ -144,6 +144,33 @@ def run_training(print_progress=True, model_number=None):
             D = np.array([0.6]),
             BC = np.array([[0.0], [0.0]]),
             dx = dx,
+            layer_sizes = config.model.layer_sizes,
+            device = device,
+            mode="train",
+            learn_coeff=True
+        ).to(device=device)
+
+    elif config.data.type == "burger_2d":
+        # Load samples, together with x, y, and t series
+        t = th.tensor(np.load(os.path.join(data_path, "t_series.npy")),
+                      dtype=th.float).to(device=device)
+        x = np.load(os.path.join(data_path, "x_series.npy"))
+        y = np.load(os.path.join(data_path, "y_series.npy"))
+        u = th.tensor(np.load(os.path.join(data_path, "sample.npy")),
+                             dtype=th.float).to(device=device)
+        
+        u[1:] = u[1:] + th.normal(th.zeros_like(u[1:]),th.ones_like(u[1:])*config.data.noise)
+        
+        dx = x[1]-x[0]
+        dy = y[1]-y[0]
+                         
+        # Initialize and set up the model
+        model = FINN_Burger2D(
+            u = u,
+            D = np.array([1.75]),
+            BC = np.zeros((4,1)),
+            dx = dx,
+            dy = dy,
             layer_sizes = config.model.layer_sizes,
             device = device,
             mode="train",

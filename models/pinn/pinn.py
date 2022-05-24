@@ -367,3 +367,51 @@ class PINN_AllenCahn(PINN):
         u_x = self.dv1_dv2(v1=u, v2=x)
         u_xx = self.dv1_dv2(v1=u_x, v2=x)
         return u_t - 0.0001*u_xx + 5*u**3 -5*u
+
+
+class PINN_Burger2D(PINN):
+    """
+    PINN class for learning and predicting the Burger's equation.
+    """
+
+    def __init__(self, layer_sizes, device):
+        """
+        Constructor method to initialize a PINN instance.
+        :param layer_sizes: List with numbers of neurons per layer
+        :param device: The device (GPU/CPU) for the calculations
+        """
+        super(PINN_Burger2D, self).__init__()
+
+        # Initialize the neural network for approximating u
+        self.net_u = self.init_approximation_net(layer_sizes=layer_sizes,
+                                                 device=device)
+
+    def forward(self, t, x, y):
+        """
+        Computes the forward pass of the PINN network given an input.
+        :param t: The current time step
+        :param x: The input to the model
+        :return: The output of the model
+        """
+        t.requires_grad_(True)
+        x.requires_grad_(True)
+        y.requires_grad_(True)
+        u = self.net_u(th.cat((t, x, y), dim=1))
+        f = self.net_f(u, t, x, y)
+        return u, f
+
+    def net_f(self, u, t, x, y):
+        """
+        Forward pass of the neural net that solves f based on automatic
+        differentiation.
+        :param u: The solution of net_u for u(t, x)
+        :param t: Current time step
+        :param x: Model input
+        :return: The solution of net_f
+        """
+        u_t = self.dv1_dv2(v1=u, v2=t)
+        u_x = self.dv1_dv2(v1=u, v2=x)
+        u_xx = self.dv1_dv2(v1=u_x, v2=x)
+        u_y = self.dv1_dv2(v1=u, v2=y)
+        u_yy = self.dv1_dv2(v1=u_y, v2=y)
+        return u_t + u*u_x + u*u_y - (0.01/np.pi)*(u_xx + u_yy)

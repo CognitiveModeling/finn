@@ -70,6 +70,13 @@ def build_dataloader(config, mode, batch_size):
             dataset_name=config.data.name,
             mode=mode
         )
+    elif config.data.type == "burger_2d":
+        dataset = datasets.DatasetBurger2D(
+            root_path=os.path.abspath("../../data"),
+            dataset_type=config.data.type,
+            dataset_name=config.data.name,
+            mode=mode
+        )
 
     dataloader = th.utils.data.DataLoader(
         dataset=dataset,

@@ -3,14 +3,14 @@
 	},
 
 	"general": {
-		"device": "cpu"  // "cuda"
+		"device": "cpu"  // "cpu", or "cuda"
 	},
 
 	"training": {
 		"save_model": true,
 		"continue_training": false,
 		"epochs": 500,
-		"batch_size": 20250,  // burger 7565, diff-sorp 10065, diff-react 20250, allen_cahn 5065
+		"batch_size": 20250,  // burger 7565, burger_2d 20250, diff-sorp 10065, diff-react 20250, allen_cahn 5065
 		"learning_rate": 1.0
 	},
 
@@ -19,8 +19,8 @@
 	},
 
 	"data": {
-		"type": "diffusion_reaction",  // "burger", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
-		"name": "data_ext", //  "data_train", "data_ext", "data_test"
+		"type": "burger_2d",  // "burger", "burger_2d", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
+		"name": "data_train", //  "data_train", "data_ext", "data_test"
 		"burger": {
 		},
 		"diffusion_sorption": {
@@ -43,8 +43,8 @@
 	},
 
 	"model": {
-		"name": "diff-react",  // "burger", "diff-sorp", "diff-react", "allen-cahn"
+		"name": "burger_2d",  // "burger", "burger_2d", "diff-sorp", "diff-react", "allen-cahn"
 		"number":  0,  // The i-th model
-		"layer_sizes": [3, 20, 20, 20, 20, 20, 20, 20, 20, 2]  // burger and allen_cahn [2, ..., 1], diff-sorp [2, ..., 2], diff-react [3, ..., 2]
+		"layer_sizes": [3, 20, 20, 20, 20, 20, 20, 20, 20, 1]  // burger and allen_cahn [2, ..., 1], diff-sorp [2, ..., 2], diff-react [3, ..., 2], burger_2d [3, ..., 1]
 	}
 }
