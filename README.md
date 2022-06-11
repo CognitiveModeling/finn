@@ -1,7 +1,7 @@
 
 # FInite volume Neural Network (FINN)
 
-This repository contains the PyTorch code for models, training, and testing, and Python code for data generation to conduct the experiments as reported in the work [Composing Partial Differential Equations with Physics-Aware Neural Networks](...)
+This repository contains the PyTorch code for models, training, and testing, and Python code for data generation to conduct the experiments as reported in the work [Composing Partial Differential Equations with Physics-Aware Neural Networks](https://arxiv.org/abs/2111.11798)
 
 If you find this repository helpful, please cite our work:
 
@@ -25,6 +25,8 @@ We recommend setting up an (e.g. [conda](https://docs.conda.io/projects/conda/en
   - `conda install -c pytorch pytorch==1.9.0`
   - `conda install -c jmcmurray json`
   - `conda install -c conda-forge matplotlib torchdiffeq jsmin`
+  
+Alternatively, the `environment.yml` can be used to create an according conda environment with `conda env create -f environment.yml`.
 
 ## Models & Experiments
 
@@ -38,18 +40,18 @@ Each model directory contains a `config.json` file to specify model parameters, 
 },
 
 "validation": {
-	"t_start": 150,  // burger and allen-cahn 150, diff-sorp 400, diff-react 70
-	"t_stop": 200  // burger and allen-cahn 200, diff-sorp 500, diff-react 100
+	"t_start": 150,  // burger, burger_2d, and allen-cahn 150, diff-sorp 400, diff-react 70
+	"t_stop": 200  // burger, burger2d, and allen-cahn 200, diff-sorp 500, diff-react 100
 },
 
 "data": {
-	"type": "burger",  // "burger", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
+	"type": "burger",  // "burger", "burger_2d", diffusion_sorption", "diffusion_reaction", "allen_cahn"
 	"name": "data_ext",  // "data_train", "data_ext", "data_test"
 }
 
 "model": {
-  	"name": "burger"  // "burger", "diff-sorp", "diff-react", "allen-cahn"
-	"field_size": [49],  // burger and allen-cahn [49], diff-sorp [26], fhn [49, 49]
+  	"name": "burger"  // "burger", "burger_2d", diff-sorp", "diff-react", "allen-cahn"
+	"field_size": [49],  // burger and allen-cahn [49], diff-sorp [26], burger_2d and diff-react [49, 49]
 	... other settings to be specified according to the model architectures section in the paper's appendix
 }
 ```
@@ -59,9 +61,9 @@ The actual models can be trained and tested by calling the according `python tra
 
 ## Data generation
 
-The Python scripts to generate the burger, diffusion-sorption, diffusion-reaction, and  allen-cahn data can be found in the `data` directory.
+The Python scripts to generate the burger, burger_2d, diffusion-sorption, diffusion-reaction, and  allen-cahn data can be found in the `data` directory.
 
-In each of the `burger`, `diffusion_sorption`, `diffusion_reaction`, and `allen-cahn` directories, a `data_generation.py` and `simulator.py` script can be found. The former is used to generate train, extrapolation (ext), or test data. For details about the according data generation settings of each dataset, please refer to the corresponding data sections in the paper's appendices.
+In each of the `burger`, `burger_2d`, `diffusion_sorption`, `diffusion_reaction`, and `allen-cahn` directories, a `data_generation.py` and `simulator.py` script can be found. The former is used to generate train, extrapolation (ext), or test data. For details about the according data generation settings of each dataset, please refer to the corresponding data sections in the paper's appendix.
 
 ## Uncertainty quantification
 
