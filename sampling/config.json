@@ -1,0 +1,38 @@
+{
+	"paths": {
+	},
+
+	"general": {
+		"device": "cpu"
+	},
+
+	"training": {
+		"save_model": true,
+		"continue_training": false,
+		"epochs": 100,
+		"learning_rate": 0.1
+	},
+	
+	"sampling": {
+                "train": false,
+		"sample": true,
+		"random_init": false,
+		"sampler": "mala",
+		"name": "mala_sampler",
+		"step_size": 0.00003,
+		"noise_tol": 0.05,
+		"num_sample": 1000
+	},
+
+	"data": {
+		"type": "diffusion_sorption",  // "burger", "diffusion_sorption", "diffusion_reaction", "allen_cahn"
+		"name": "experiment", // "data_train", "data_ext", "data_test"
+		"noise": 0.0
+	},
+
+	"model": {
+		"name": "diff-sorp",
+		"number": 0,  // The i-th model
+		"layer_sizes": [1, 10, 20, 10, 1] // [1, 10, 20, 10, 1] for burger, diffusion_sorption, and allen_cahn, [2, 20, 20, 20, 2] for diffusion_reaction
+	}
+}
